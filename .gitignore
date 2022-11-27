@@ -1,2 +1,6 @@
 .*
 !.gitignore
+
+/rust
+
+config.txt

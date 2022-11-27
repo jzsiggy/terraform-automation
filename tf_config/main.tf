@@ -4,8 +4,8 @@ locals {
     vpcs = local.resources.vpcs
     subnets = local.resources.subnets
     users = local.resources.users
-    security-groups = local.resources.security-groups
-    security-group-rules = local.resources.security-group-rules
+    security_groups = local.resources.security_groups
+    security_group_rules = local.resources.security_group_rules
 }
 
 terraform {
@@ -23,12 +23,34 @@ provider "aws" {
   region = "us-east-1"
 }
 
+resource "aws_iam_user" "user" {
+  for_each = local.users
+  name = each.key
+}
+
 resource "aws_vpc" "vpc" {
   for_each = local.vpcs
   cidr_block = each.value.cidr_block
   tags = {
-    name = each.key
+    Name = each.key
   }
+}
+
+resource "aws_subnet" "subnet" {
+  for_each   = local.subnets
+  vpc_id     = each.value.vpc_id
+  cidr_block = each.value.cidr_block
+
+  tags = {
+    Name = each.key
+  }
+}
+
+resource "aws_security_group" "sg" {
+  for_each    = local.security_groups
+  name        = each.key
+  description = each.value.description
+  vpc_id      = each.value.vpc_id
 }
 
 resource "aws_instance" "vm" {
@@ -38,6 +60,6 @@ resource "aws_instance" "vm" {
   vpc_security_group_ids    = each.value.vpc_security_group_ids
   subnet_id                 = each.value.subnet_id
   tags = {
-    name = each.key
+    Name = each.key
   }
 }
